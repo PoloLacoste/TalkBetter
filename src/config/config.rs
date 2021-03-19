@@ -6,6 +6,7 @@ pub enum MatchType {
 
 pub struct Matcher {
     pub name: String,
+    pub messages: Vec<String>,
     pub match_type: MatchType,
     pub pattern: Option<String>,
 }

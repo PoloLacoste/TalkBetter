@@ -1,17 +1,10 @@
-use lazy_static::lazy_static;
 use crate::matchers::TalkMatcher;
 use regex::Regex;
 use rand::seq::SliceRandom;
 
 pub struct RegexMatcher {
+    messages: Vec<String>,
     regex: Regex
-}
-
-
-lazy_static! {
-    static ref MESSAGES: Vec<&'static str> = vec![
-        "Test response"
-    ];
 }
 
 impl TalkMatcher for RegexMatcher {
@@ -19,13 +12,16 @@ impl TalkMatcher for RegexMatcher {
         return self.regex.is_match(msg);
     }
 
-    fn get_msg(&self) -> &'static str {
-        return MESSAGES.choose(&mut rand::thread_rng()).unwrap();
+    fn get_msg(&self) -> &str {
+        return &self.messages.choose(&mut rand::thread_rng()).unwrap();
     }
 }
 
 impl RegexMatcher {
-    pub fn new(pattern: &str) -> Self {
-        RegexMatcher { regex: Regex::new(pattern).unwrap() }
+    pub fn new(pattern: &str, messages: Vec<String>) -> Self {
+        RegexMatcher { 
+            regex: Regex::new(pattern).unwrap(),
+            messages: messages
+        }
     }
 }

@@ -50,10 +50,11 @@ impl Handler {
         let mut matchers: Vec<Box<dyn TalkMatcher>> = vec![];
 
         for matcher in config.matchers {
+
             match matcher.match_type {
                 MatchType::Regex => {
                     let pattern = &matcher.pattern.unwrap();
-                    matchers.push(Box::new(RegexMatcher::new(pattern)));
+                    matchers.push(Box::new(RegexMatcher::new(pattern, matcher.messages)));
                     info!("Added regex matcher {} => {}", matcher.name, pattern);
                 },
                 MatchType::Contains => {

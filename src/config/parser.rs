@@ -2,7 +2,7 @@ use crate::config::{Matcher, Config, MatchType};
 use std::path::Path;
 use std::fs;
 use std::process;
-use log::{error, debug};
+use log::{error, debug, warn};
 use serde_yaml::Value;
 
 pub struct Parser {
@@ -22,9 +22,7 @@ impl Parser {
 
         debug!("Parsing configuration...");
         
-        let config_str = fs::read_to_string(&self.config_path).unwrap();
-        
-        let value: Value = serde_yaml::from_str(&config_str).expect("Failed to parse yaml file");
+        let value: Value = self.read_and_parse_yaml(&self.config_path);
         debug!("Config: {:?}", value);
 
         let mut config: Config = Config {
@@ -40,9 +38,33 @@ impl Parser {
 
         for matcher in matchers.as_mapping().iter() {
             for (key, value) in matcher.iter() {
+                
+                let name = key.as_str().unwrap().to_owned();
+
+                debug!("Parsing matcher {}", name);
 
                 let mut match_type: MatchType = MatchType::Null;
                 let mut pattern: Option<String> = Option::None;
+
+                let messages_file = value.get("messages_file").unwrap_or(&Value::Null);
+                if messages_file.is_null() {
+                    warn!("Matcher {} doesn't provide a file path for responses", name);
+                    break;
+                }
+
+                let messages_path = messages_file.as_str().unwrap();
+
+                if !Path::new(messages_path).exists() {
+                    warn!("Responses file for matcher {} doesn't exist", name);
+                    break;
+                }
+
+                let messages = self.parse_messages(messages_path);
+
+                if messages.len() == 0 {
+                    warn!("No responses for matcher {}", name);
+                    break;
+                }
 
                 let regex: &Value  = value.get("regex").unwrap_or(&Value::Null);
                 if !regex.is_null() {
@@ -57,7 +79,8 @@ impl Parser {
                 }
 
                 let matcher = Matcher {
-                    name: key.as_str().unwrap().to_owned(),
+                    name: name,
+                    messages: messages,
                     match_type: match_type,
                     pattern: pattern
                     
@@ -68,5 +91,25 @@ impl Parser {
 
         debug!("Parsing configuration done !");
         return config;
+    }
+
+    fn parse_messages(&self, messages_path: &str) -> Vec<String> {
+        let mut messages: Vec<String> = vec![];
+
+        let value: Value = self.read_and_parse_yaml(messages_path);
+
+        if value.is_sequence() {
+            for response in value.as_sequence().unwrap() {
+                messages.push(response.as_str().unwrap().to_owned());
+            }
+        }
+
+        return messages;
+    }
+
+    fn read_and_parse_yaml(&self, file_path: &str) -> Value {
+        let file_str = fs::read_to_string(file_path).unwrap();
+        let value: Value = serde_yaml::from_str(&file_str).expect("Failed to parse yaml file");
+        return value;
     }
 }

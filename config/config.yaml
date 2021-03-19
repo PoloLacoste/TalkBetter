@@ -1,3 +1,4 @@
 matchers:
   uppercase:
-    regex: "^[^a-z]*$"
+    regex: '^[^a-z]*$'
+    messages_file: 'config/messages/uppercase.yaml'
