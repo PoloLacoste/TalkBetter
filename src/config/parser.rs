@@ -41,9 +41,6 @@ impl Parser {
 
                 debug!("Parsing matcher {}", name);
 
-                let mut match_type: MatchType = MatchType::Null;
-                let mut pattern: String = "".to_owned();
-
                 let messages_file = value.get("messages_file").unwrap_or(&Value::Null);
                 if messages_file.is_null() {
                     warn!("Matcher {} doesn't provide a file path for responses", name);
@@ -64,25 +61,24 @@ impl Parser {
                     break;
                 }
 
-                let regex: &Value = value.get("regex").unwrap_or(&Value::Null);
-                if !regex.is_null() {
-                    match_type = MatchType::Regex;
-                    pattern = regex.as_str().unwrap().to_owned();
-                }
+                let matcher_config: Vec<(&'static str, MatchType)> = vec![
+                    ("regex", MatchType::Regex),
+                    ("contains", MatchType::Contains),
+                ];
 
-                let contains: &Value = value.get("contains").unwrap_or(&Value::Null);
-                if !contains.is_null() {
-                    match_type = MatchType::Contains;
-                    pattern = contains.as_str().unwrap().to_owned();
+                for (config_name, match_type) in matcher_config {
+                    let val: &Value = value.get(config_name).unwrap_or(&Value::Null);
+                    if !val.is_null() {
+                        let matcher = Matcher {
+                            name: name,
+                            messages: messages,
+                            match_type: match_type,
+                            pattern: val.as_str().unwrap().to_owned(),
+                        };
+                        config.matchers.push(matcher);
+                        break;
+                    }
                 }
-
-                let matcher = Matcher {
-                    name: name,
-                    messages: messages,
-                    match_type: match_type,
-                    pattern: pattern,
-                };
-                config.matchers.push(matcher);
             }
         }
 

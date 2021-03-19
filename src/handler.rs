@@ -5,7 +5,7 @@ use serenity::{
     utils::MessageBuilder,
 };
 
-use log::{debug, error, info, warn};
+use log::{debug, error, info};
 
 use crate::config::{Config, MatchType};
 use crate::matchers::{RegexMatcher, TalkMatcher};
@@ -20,7 +20,7 @@ impl EventHandler for Handler {
         let mut has_match = false;
         let mut message = "Empty message";
 
-        debug!("Analyzing message {}", &msg.content);
+        debug!("Analyzing message {} from {}", msg.content, msg.author.name);
 
         for matcher in self.matchers.iter() {
             if matcher.test(&msg.content) {
@@ -61,7 +61,6 @@ impl Handler {
                         matcher.name, matcher.pattern
                     );
                 }
-                MatchType::Null => warn!("Invalid matcher {}", matcher.name),
             }
         }
 

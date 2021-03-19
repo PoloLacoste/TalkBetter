@@ -1,6 +1,5 @@
 #[derive(Clone)]
 pub enum MatchType {
-    Null,
     Regex,
     Contains,
 }
