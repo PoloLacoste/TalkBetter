@@ -31,7 +31,12 @@ impl Parser {
             matchers: vec![]
         };
 
-        let matchers = value.get("matchers").unwrap_or(vec![]);
+        let matchers = value.get("matchers").unwrap_or(&Value::Null);
+
+        if matchers.is_null() {
+            error!("Matchers does not exist in the configuration file !");
+            process::exit(0x1);
+        }
 
         for matcher in matchers.as_mapping().iter() {
             for (key, value) in matcher.iter() {
