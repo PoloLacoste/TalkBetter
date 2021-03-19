@@ -1,9 +1,10 @@
 use crate::matchers::TalkMatcher;
+use crate::config::Matcher;
 use regex::Regex;
 use rand::seq::SliceRandom;
 
 pub struct RegexMatcher {
-    messages: Vec<String>,
+    matcher: Matcher,
     regex: Regex
 }
 
@@ -13,15 +14,19 @@ impl TalkMatcher for RegexMatcher {
     }
 
     fn get_msg(&self) -> &str {
-        return &self.messages.choose(&mut rand::thread_rng()).unwrap();
+        return &self.matcher.messages.choose(&mut rand::thread_rng()).unwrap();
+    }
+
+    fn get_name(&self) -> &str {
+        return &self.matcher.name;
     }
 }
 
 impl RegexMatcher {
-    pub fn new(pattern: &str, messages: Vec<String>) -> Self {
+    pub fn new(matcher: Matcher) -> Self {
         RegexMatcher { 
-            regex: Regex::new(pattern).unwrap(),
-            messages: messages
+            regex: Regex::new(&matcher.pattern).unwrap(),
+            matcher: matcher
         }
     }
 }

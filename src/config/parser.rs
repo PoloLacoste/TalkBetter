@@ -44,7 +44,7 @@ impl Parser {
                 debug!("Parsing matcher {}", name);
 
                 let mut match_type: MatchType = MatchType::Null;
-                let mut pattern: Option<String> = Option::None;
+                let mut pattern: String = "".to_owned();
 
                 let messages_file = value.get("messages_file").unwrap_or(&Value::Null);
                 if messages_file.is_null() {
@@ -69,13 +69,13 @@ impl Parser {
                 let regex: &Value  = value.get("regex").unwrap_or(&Value::Null);
                 if !regex.is_null() {
                     match_type = MatchType::Regex;
-                    pattern = Some(regex.as_str().unwrap().to_owned());
+                    pattern = regex.as_str().unwrap().to_owned();
                 }
 
                 let contains: &Value  = value.get("contains").unwrap_or(&Value::Null);
                 if !contains.is_null() {
                     match_type = MatchType::Contains;
-                    pattern = Some(contains.as_str().unwrap().to_owned());
+                    pattern = contains.as_str().unwrap().to_owned();
                 }
 
                 let matcher = Matcher {
