@@ -1,0 +1,3 @@
+matchers:
+  uppercase:
+    regex: "^[^a-z]*$"

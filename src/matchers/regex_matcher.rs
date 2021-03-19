@@ -25,7 +25,7 @@ impl TalkMatcher for RegexMatcher {
 }
 
 impl RegexMatcher {
-    pub fn new(pattern: &'static str) -> Self {
+    pub fn new(pattern: &str) -> Self {
         RegexMatcher { regex: Regex::new(pattern).unwrap() }
     }
 }
