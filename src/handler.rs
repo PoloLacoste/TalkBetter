@@ -11,7 +11,7 @@ use crate::config::{Config, MatchType};
 use crate::matchers::{RegexMatcher, TalkMatcher};
 
 pub struct Handler {
-    matchers: Vec<Box<dyn TalkMatcher>>
+    matchers: Vec<Box<dyn TalkMatcher>>,
 }
 
 static mut BOT: Option<CurrentUser> = None;
@@ -19,7 +19,6 @@ static mut BOT: Option<CurrentUser> = None;
 #[async_trait]
 impl EventHandler for Handler {
     async fn message(&self, context: Context, msg: Message) {
-
         // ignore messages from bot
         if msg.author.id.0 == self.get_bot().id.0 {
             return;
@@ -28,7 +27,7 @@ impl EventHandler for Handler {
         let mut has_match = false;
         let mut message = "Empty message";
 
-        debug!("Analyzing message {} from {}", msg.content, msg.author.name);
+        debug!("Analyzing message '{}' from {}", msg.content, msg.author.name);
 
         for matcher in self.matchers.iter() {
             if matcher.test(&msg.content) {
@@ -40,11 +39,14 @@ impl EventHandler for Handler {
         }
 
         if has_match {
-            debug!("Sending response {} to {}", message, msg.author.name);
+            debug!("Sending response '{}' to {}", message, msg.author.name);
             let response = MessageBuilder::new().push(message).build();
             if let Err(why) = msg.reply(&context.http, &response).await {
                 error!("Error sending message: {:?}", why);
             }
+        }
+        else {
+            debug!("Could't find a matcher on message '{}' from {}", msg.content, msg.author.name)
         }
     }
 
@@ -76,14 +78,14 @@ impl Handler {
             }
         }
 
-        Handler { matchers: matchers}
+        Handler { matchers: matchers }
     }
 
     fn get_bot(&self) -> &'static mut CurrentUser {
         unsafe {
             match BOT {
                 Some(ref mut x) => x,
-                None => panic!()
+                None => panic!(),
             }
         }
     }
