@@ -1,11 +1,11 @@
-use crate::matchers::TalkMatcher;
 use crate::config::Matcher;
-use regex::Regex;
+use crate::matchers::TalkMatcher;
 use rand::seq::SliceRandom;
+use regex::Regex;
 
 pub struct RegexMatcher {
     matcher: Matcher,
-    regex: Regex
+    regex: Regex,
 }
 
 impl TalkMatcher for RegexMatcher {
@@ -14,7 +14,11 @@ impl TalkMatcher for RegexMatcher {
     }
 
     fn get_msg(&self) -> &str {
-        return &self.matcher.messages.choose(&mut rand::thread_rng()).unwrap();
+        return &self
+            .matcher
+            .messages
+            .choose(&mut rand::thread_rng())
+            .unwrap();
     }
 
     fn get_name(&self) -> &str {
@@ -24,9 +28,9 @@ impl TalkMatcher for RegexMatcher {
 
 impl RegexMatcher {
     pub fn new(matcher: Matcher) -> Self {
-        RegexMatcher { 
+        RegexMatcher {
             regex: Regex::new(&matcher.pattern).unwrap(),
-            matcher: matcher
+            matcher: matcher,
         }
     }
 }

@@ -5,19 +5,18 @@ use serenity::{
     utils::MessageBuilder,
 };
 
-use log::{error, info, warn, debug};
+use log::{debug, error, info, warn};
 
 use crate::config::{Config, MatchType};
-use crate::matchers::{TalkMatcher, RegexMatcher};
+use crate::matchers::{RegexMatcher, TalkMatcher};
 
 pub struct Handler {
-    matchers: Vec<Box<dyn TalkMatcher>>
+    matchers: Vec<Box<dyn TalkMatcher>>,
 }
 
 #[async_trait]
 impl EventHandler for Handler {
     async fn message(&self, context: Context, msg: Message) {
-
         let mut has_match = false;
         let mut message = "Empty message";
 
@@ -33,10 +32,7 @@ impl EventHandler for Handler {
         }
 
         if has_match {
-            let response = MessageBuilder::new()
-                .push(message)
-                .build();
-            
+            let response = MessageBuilder::new().push(message).build();
             if let Err(why) = msg.reply(&context.http, &response).await {
                 error!("Error sending message: {:?}", why);
             }
@@ -53,17 +49,19 @@ impl Handler {
         let mut matchers: Vec<Box<dyn TalkMatcher>> = vec![];
 
         for matcher in config.matchers {
-
             match matcher.match_type {
                 MatchType::Regex => {
                     let pattern = &matcher.pattern;
                     matchers.push(Box::new(RegexMatcher::new(matcher.clone())));
                     info!("Added regex matcher {} => {}", matcher.name, pattern);
-                },
-                MatchType::Contains => {
-                    info!("Added contains matcher {} => {}", matcher.name, matcher.pattern);
                 }
-                MatchType::Null => warn!("Invalid matcher {}", matcher.name)
+                MatchType::Contains => {
+                    info!(
+                        "Added contains matcher {} => {}",
+                        matcher.name, matcher.pattern
+                    );
+                }
+                MatchType::Null => warn!("Invalid matcher {}", matcher.name),
             }
         }
 

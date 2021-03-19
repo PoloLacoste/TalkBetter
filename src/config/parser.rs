@@ -1,33 +1,32 @@
-use crate::config::{Matcher, Config, MatchType};
-use std::path::Path;
-use std::fs;
-use std::process;
-use log::{error, debug, warn};
+use crate::config::{Config, MatchType, Matcher};
+use log::{debug, error, warn};
 use serde_yaml::Value;
+use std::fs;
+use std::path::Path;
+use std::process;
 
 pub struct Parser {
-    config_path: String
+    config_path: String,
 }
 
 impl Parser {
     pub fn new(config_path: &str) -> Self {
-        Parser { config_path: config_path.to_owned() }
+        Parser {
+            config_path: config_path.to_owned(),
+        }
     }
 
-    pub fn parse(&self) -> Config{
+    pub fn parse(&self) -> Config {
         if !Path::new(&self.config_path).exists() {
             error!("File {} doesn't exists", self.config_path);
             process::exit(0x1);
         }
 
         debug!("Parsing configuration...");
-        
         let value: Value = self.read_and_parse_yaml(&self.config_path);
         debug!("Config: {:?}", value);
 
-        let mut config: Config = Config {
-            matchers: vec![]
-        };
+        let mut config: Config = Config { matchers: vec![] };
 
         let matchers = value.get("matchers").unwrap_or(&Value::Null);
 
@@ -38,7 +37,6 @@ impl Parser {
 
         for matcher in matchers.as_mapping().iter() {
             for (key, value) in matcher.iter() {
-                
                 let name = key.as_str().unwrap().to_owned();
 
                 debug!("Parsing matcher {}", name);
@@ -66,13 +64,13 @@ impl Parser {
                     break;
                 }
 
-                let regex: &Value  = value.get("regex").unwrap_or(&Value::Null);
+                let regex: &Value = value.get("regex").unwrap_or(&Value::Null);
                 if !regex.is_null() {
                     match_type = MatchType::Regex;
                     pattern = regex.as_str().unwrap().to_owned();
                 }
 
-                let contains: &Value  = value.get("contains").unwrap_or(&Value::Null);
+                let contains: &Value = value.get("contains").unwrap_or(&Value::Null);
                 if !contains.is_null() {
                     match_type = MatchType::Contains;
                     pattern = contains.as_str().unwrap().to_owned();
@@ -82,8 +80,7 @@ impl Parser {
                     name: name,
                     messages: messages,
                     match_type: match_type,
-                    pattern: pattern
-                    
+                    pattern: pattern,
                 };
                 config.matchers.push(matcher);
             }

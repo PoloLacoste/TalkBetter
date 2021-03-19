@@ -1,6 +1,6 @@
-use std::env;
-use serenity::prelude::Client;
 use log::{error, info};
+use serenity::prelude::Client;
+use std::env;
 
 mod config;
 mod handler;
@@ -15,13 +15,11 @@ fn get_default_env_string(name: &'static str, default: &'static str) -> String {
 
 #[tokio::main]
 async fn main() {
-
     env_logger::init();
 
     info!("Starting...");
 
-    let token = env::var("DISCORD_TOKEN")
-        .expect("Expected a token in the environment");
+    let token = env::var("DISCORD_TOKEN").expect("Expected a token in the environment");
 
     let config_path = get_default_env_string("CONFIG_PATH", "config/config.yaml");
 

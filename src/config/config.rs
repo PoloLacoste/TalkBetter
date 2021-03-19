@@ -2,7 +2,7 @@
 pub enum MatchType {
     Null,
     Regex,
-    Contains
+    Contains,
 }
 
 #[derive(Clone)]
@@ -14,5 +14,5 @@ pub struct Matcher {
 }
 
 pub struct Config {
-    pub matchers: Vec<Matcher>
+    pub matchers: Vec<Matcher>,
 }
