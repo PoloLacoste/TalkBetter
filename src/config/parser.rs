@@ -24,14 +24,14 @@ impl Parser {
         
         let config_str = fs::read_to_string(&self.config_path).unwrap();
         
-        let mut value: Value = serde_yaml::from_str(&config_str).expect("Failed to parse yaml file");
+        let value: Value = serde_yaml::from_str(&config_str).expect("Failed to parse yaml file");
         debug!("Config: {:?}", value);
 
         let mut config: Config = Config {
             matchers: vec![]
         };
 
-        let matchers = value.get_mut("matchers").unwrap();
+        let matchers = value.get("matchers").unwrap();
 
         for matcher in matchers.as_mapping().iter() {
             for (key, value) in matcher.iter() {
