@@ -16,9 +16,9 @@ fn get_default_env_string(name: &'static str, default: &'static str) -> String {
 #[tokio::main]
 async fn main() {
 
-    info!("Starting...");
-
     env_logger::init();
+
+    info!("Starting...");
 
     let token = env::var("DISCORD_TOKEN")
         .expect("Expected a token in the environment");
