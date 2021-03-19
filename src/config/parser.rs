@@ -9,6 +9,11 @@ pub struct Parser {
     config_path: String,
 }
 
+static MATCHER_CONFIG: &'static [(&'static str, MatchType)] = &[
+    ("regex", MatchType::Regex),
+    ("contains", MatchType::Contains),
+];
+
 impl Parser {
     pub fn new(config_path: &str) -> Self {
         Parser {
@@ -61,18 +66,13 @@ impl Parser {
                     break;
                 }
 
-                let matcher_config: Vec<(&'static str, MatchType)> = vec![
-                    ("regex", MatchType::Regex),
-                    ("contains", MatchType::Contains),
-                ];
-
-                for (config_name, match_type) in matcher_config {
+                for (config_name, match_type) in MATCHER_CONFIG {
                     let val: &Value = value.get(config_name).unwrap_or(&Value::Null);
                     if !val.is_null() {
                         let matcher = Matcher {
                             name: name,
                             messages: messages,
-                            match_type: match_type,
+                            match_type: match_type.clone(),
                             pattern: val.as_str().unwrap().to_owned(),
                         };
                         config.matchers.push(matcher);
