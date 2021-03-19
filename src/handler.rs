@@ -1,6 +1,6 @@
 use serenity::{
     async_trait,
-    model::{channel::Message, gateway::Ready},
+    model::{channel::Message, gateway::Ready, user::CurrentUser},
     prelude::{Context, EventHandler},
     utils::MessageBuilder,
 };
@@ -11,12 +11,20 @@ use crate::config::{Config, MatchType};
 use crate::matchers::{RegexMatcher, TalkMatcher};
 
 pub struct Handler {
-    matchers: Vec<Box<dyn TalkMatcher>>,
+    matchers: Vec<Box<dyn TalkMatcher>>
 }
+
+static mut BOT: Option<CurrentUser> = None;
 
 #[async_trait]
 impl EventHandler for Handler {
     async fn message(&self, context: Context, msg: Message) {
+
+        // ignore messages from bot
+        if msg.author.id.0 == self.get_bot().id.0 {
+            return;
+        }
+
         let mut has_match = false;
         let mut message = "Empty message";
 
@@ -32,6 +40,7 @@ impl EventHandler for Handler {
         }
 
         if has_match {
+            debug!("Sending response {} to {}", message, msg.author.name);
             let response = MessageBuilder::new().push(message).build();
             if let Err(why) = msg.reply(&context.http, &response).await {
                 error!("Error sending message: {:?}", why);
@@ -41,6 +50,9 @@ impl EventHandler for Handler {
 
     async fn ready(&self, _: Context, ready: Ready) {
         info!("{} is connected!", ready.user.name);
+        unsafe {
+            BOT = Some(ready.user);
+        }
     }
 }
 
@@ -64,6 +76,15 @@ impl Handler {
             }
         }
 
-        Handler { matchers: matchers }
+        Handler { matchers: matchers}
+    }
+
+    fn get_bot(&self) -> &'static mut CurrentUser {
+        unsafe {
+            match BOT {
+                Some(ref mut x) => x,
+                None => panic!()
+            }
+        }
     }
 }
