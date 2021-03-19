@@ -31,7 +31,7 @@ impl Parser {
             matchers: vec![]
         };
 
-        let matchers = value.get("matchers").unwrap();
+        let matchers = value.get("matchers").unwrap_or(vec![]);
 
         for matcher in matchers.as_mapping().iter() {
             for (key, value) in matcher.iter() {
