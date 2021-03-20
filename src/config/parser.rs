@@ -114,8 +114,14 @@ impl Parser {
                 patterns.push(val.as_str().unwrap().to_owned());
             }
         }
-        else {
-            patterns.push(value.as_str().unwrap().to_owned());
+        else if value.is_f64(){
+            patterns.push(value.as_f64().unwrap().to_string());
+        }
+        else if value.is_i64(){
+            patterns.push(value.as_i64().unwrap().to_string());
+        }
+        else if value.is_u64(){
+            patterns.push(value.as_u64().unwrap().to_string());
         }
 
         return patterns;
