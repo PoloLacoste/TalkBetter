@@ -46,7 +46,7 @@ impl Parser {
 
                 debug!("Parsing matcher {}", name);
 
-                let messages_file = value.get("messages_file").unwrap_or(&Value::Null);
+                let messages_file = value.get("messages").unwrap_or(&Value::Null);
                 if messages_file.is_null() {
                     warn!("Matcher {} doesn't provide a file path for responses", name);
                     break;

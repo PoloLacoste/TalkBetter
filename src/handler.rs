@@ -8,7 +8,7 @@ use serenity::{
 use log::{debug, error, info};
 
 use crate::config::{Config, MatchType};
-use crate::matchers::{RegexMatcher, TalkMatcher};
+use crate::matchers::{TalkMatcher, RegexMatcher, ContainsMatcher};
 
 pub struct Handler {
     matchers: Vec<Box<dyn TalkMatcher>>,
@@ -71,10 +71,11 @@ impl Handler {
             match matcher.match_type {
                 MatchType::Regex => {
                     matchers.push(Box::new(RegexMatcher::new(matcher.clone())));
-                    info!("Added regex matcher {}", matcher.name);
+                    info!("[+] regex matcher {}", matcher.name);
                 }
                 MatchType::Contains => {
-                    info!("Added contains matcher {}", matcher.name);
+                    matchers.push(Box::new(ContainsMatcher::new(matcher.clone())));
+                    info!("[+] contains matcher {}", matcher.name);
                 }
             }
         }

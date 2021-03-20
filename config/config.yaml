@@ -1,4 +1,8 @@
 matchers:
   uppercase:
     regex: '^[^a-z]*$'
-    messages_file: 'config/messages/uppercase.yaml'
+    messages: 'config/messages/uppercase.yaml'
+  
+  toto:
+    contains: 'toto'
+    messages: 'config/messages/toto.yaml'
