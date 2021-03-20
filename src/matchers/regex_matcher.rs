@@ -2,15 +2,21 @@ use crate::config::Matcher;
 use crate::matchers::TalkMatcher;
 use rand::seq::SliceRandom;
 use regex::Regex;
+use log::error;
 
 pub struct RegexMatcher {
     matcher: Matcher,
-    regex: Regex,
+    regexs: Vec<Regex>,
 }
 
 impl TalkMatcher for RegexMatcher {
     fn test(&self, msg: &str) -> bool {
-        return self.regex.is_match(msg);
+        for regex in &self.regexs {
+            if regex.is_match(msg) {
+                return true;
+            }
+        }
+        return false;
     }
 
     fn get_msg(&self) -> &str {
@@ -28,9 +34,20 @@ impl TalkMatcher for RegexMatcher {
 
 impl RegexMatcher {
     pub fn new(matcher: Matcher) -> Self {
+
+        let mut regexs: Vec<Regex> = vec![];
+
+        for pattern in &matcher.patterns {
+            let regex = Regex::new(&pattern);
+            match regex {
+                Ok(re) => regexs.push(re),
+                Err(why) => error!("Invalid regex for matcher {} : {}", matcher.name, why)
+            }
+        }
+
         RegexMatcher {
-            regex: Regex::new(&matcher.pattern).unwrap(),
             matcher: matcher,
+            regexs: regexs
         }
     }
 }

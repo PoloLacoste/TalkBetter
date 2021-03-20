@@ -73,7 +73,7 @@ impl Parser {
                             name: name,
                             messages: messages,
                             match_type: match_type.clone(),
-                            pattern: val.as_str().unwrap().to_owned(),
+                            patterns: self.get_patterns(val),
                         };
                         config.matchers.push(matcher);
                         break;
@@ -84,6 +84,12 @@ impl Parser {
 
         debug!("Parsing configuration done !");
         return config;
+    }
+
+    fn read_and_parse_yaml(&self, file_path: &str) -> Value {
+        let file_str = fs::read_to_string(file_path).unwrap();
+        let value: Value = serde_yaml::from_str(&file_str).expect("Failed to parse yaml file");
+        return value;
     }
 
     fn parse_messages(&self, messages_path: &str) -> Vec<String> {
@@ -100,9 +106,18 @@ impl Parser {
         return messages;
     }
 
-    fn read_and_parse_yaml(&self, file_path: &str) -> Value {
-        let file_str = fs::read_to_string(file_path).unwrap();
-        let value: Value = serde_yaml::from_str(&file_str).expect("Failed to parse yaml file");
-        return value;
+    fn get_patterns(&self, value: &Value) -> Vec<String> {
+        let mut patterns: Vec<String> = vec![];
+
+        if value.is_sequence() {
+            for val in value.as_sequence().unwrap() {
+                patterns.push(val.as_str().unwrap().to_owned());
+            }
+        }
+        else {
+            patterns.push(value.as_str().unwrap().to_owned());
+        }
+
+        return patterns;
     }
 }

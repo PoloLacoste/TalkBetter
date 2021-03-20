@@ -27,7 +27,10 @@ impl EventHandler for Handler {
         let mut has_match = false;
         let mut message = "Empty message";
 
-        debug!("Analyzing message '{}' from {}", msg.content, msg.author.name);
+        debug!(
+            "Analyzing message '{}' from {}",
+            msg.content, msg.author.name
+        );
 
         for matcher in self.matchers.iter() {
             if matcher.test(&msg.content) {
@@ -44,9 +47,11 @@ impl EventHandler for Handler {
             if let Err(why) = msg.reply(&context.http, &response).await {
                 error!("Error sending message: {:?}", why);
             }
-        }
-        else {
-            debug!("Could't find a matcher on message '{}' from {}", msg.content, msg.author.name)
+        } else {
+            debug!(
+                "No matcher on message '{}' from {}",
+                msg.content, msg.author.name
+            )
         }
     }
 
@@ -65,15 +70,11 @@ impl Handler {
         for matcher in config.matchers {
             match matcher.match_type {
                 MatchType::Regex => {
-                    let pattern = &matcher.pattern;
                     matchers.push(Box::new(RegexMatcher::new(matcher.clone())));
-                    info!("Added regex matcher {} => {}", matcher.name, pattern);
+                    info!("Added regex matcher {}", matcher.name);
                 }
                 MatchType::Contains => {
-                    info!(
-                        "Added contains matcher {} => {}",
-                        matcher.name, matcher.pattern
-                    );
+                    info!("Added contains matcher {}", matcher.name);
                 }
             }
         }
