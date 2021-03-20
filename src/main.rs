@@ -24,7 +24,13 @@ async fn main() {
     let config_path = get_default_env_string("CONFIG_PATH", "config/config.yaml");
 
     let parser = Parser::new(&config_path);
-    let config = parser.parse();
+    let config = match parser.parse() {
+        Ok(config) => config,
+        Err(why) => {
+            error!("{}", why);
+            return;
+        }
+    };
 
     let mut client = Client::builder(&token)
         .event_handler(Handler::new(config))

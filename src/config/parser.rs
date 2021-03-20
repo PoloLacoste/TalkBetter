@@ -3,7 +3,6 @@ use log::{debug, error};
 use serde_yaml::Value;
 use std::fs;
 use std::path::Path;
-use std::process;
 
 pub struct Parser {
     config_path: String,
@@ -21,10 +20,9 @@ impl Parser {
         }
     }
 
-    pub fn parse(&self) -> Config {
+    pub fn parse(&self) -> Result<Config, String> {
         if !Path::new(&self.config_path).exists() {
-            error!("File {} doesn't exists", self.config_path);
-            process::exit(0x1);
+            return Err(format!("File {} doesn't exists", self.config_path));
         }
 
         debug!("Parsing configuration...");
@@ -36,8 +34,7 @@ impl Parser {
         let matchers = value.get("matchers").unwrap_or(&Value::Null);
 
         if matchers.is_null() {
-            error!("Matchers does not exist in the configuration file !");
-            process::exit(0x1);
+            return Err(format!("Matchers does not exist in the configuration file !"));
         }
 
         for matcher in matchers.as_mapping().iter() {
@@ -71,7 +68,7 @@ impl Parser {
         }
 
         debug!("Parsing configuration done !");
-        return config;
+        return Ok(config);
     }
 
     fn read_and_parse_yaml(&self, file_path: &str) -> Value {
