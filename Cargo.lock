@@ -1013,7 +1013,6 @@ name = "talk-better"
 version = "0.1.0"
 dependencies = [
  "env_logger",
- "lazy_static",
  "log",
  "rand 0.8.3",
  "regex",
