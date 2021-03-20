@@ -5,4 +5,8 @@ matchers:
   
   toto:
     contains: 'toto'
-    messages: 'config/messages/toto.yaml'
+    messages:
+      - Toto
+      - Titi
+      - Tutu
+      - Tata

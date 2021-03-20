@@ -1,5 +1,5 @@
 use crate::config::{Config, MatchType, Matcher};
-use log::{debug, error, warn};
+use log::{debug, error};
 use serde_yaml::Value;
 use std::fs;
 use std::path::Path;
@@ -46,25 +46,13 @@ impl Parser {
 
                 debug!("Parsing matcher {}", name);
 
-                let messages_file = value.get("messages").unwrap_or(&Value::Null);
-                if messages_file.is_null() {
-                    warn!("Matcher {} doesn't provide a file path for responses", name);
-                    break;
-                }
-
-                let messages_path = messages_file.as_str().unwrap();
-
-                if !Path::new(messages_path).exists() {
-                    warn!("Responses file for matcher {} doesn't exist", name);
-                    break;
-                }
-
-                let messages = self.parse_messages(messages_path);
-
-                if messages.len() == 0 {
-                    warn!("No responses for matcher {}", name);
-                    break;
-                }
+                let messages = match self.get_messages(value, &name) {
+                    Ok(messages) => messages,
+                    Err(why) => {
+                        error!("{}", why);
+                        continue;
+                    }
+                };
 
                 for (config_name, match_type) in MATCHER_CONFIG {
                     let val: &Value = value.get(config_name).unwrap_or(&Value::Null);
@@ -88,22 +76,46 @@ impl Parser {
 
     fn read_and_parse_yaml(&self, file_path: &str) -> Value {
         let file_str = fs::read_to_string(file_path).unwrap();
-        let value: Value = serde_yaml::from_str(&file_str).expect("Failed to parse yaml file");
+        let value: Value= serde_yaml::from_str(&file_str).expect("Failed to parse yaml file");
         return value;
     }
 
-    fn parse_messages(&self, messages_path: &str) -> Vec<String> {
+    fn get_messages(&self, value: &Value, name: &str) -> Result<Vec<String>, String> {
+        let messages = value.get("messages").unwrap_or(&Value::Null);
+        if messages.is_null() {
+            return Err(format!("Matcher {} doesn't provide messages or messages file", name));
+        }
+
+        let val: Value;
+
+        if messages.is_string() {
+            let messages_path = messages.as_str().unwrap();
+
+            if !Path::new(messages_path).exists() {
+                return Err(format!("Messages file for matcher {} doesn't exist", name));
+            }
+            val = self.read_and_parse_yaml(messages_path);
+        }
+        else if messages.is_sequence() {
+            val = messages.clone();
+        }
+        else {
+            return Err(format!("Invalid messages type for matcher {}", name));
+        }
+
         let mut messages: Vec<String> = vec![];
 
-        let value: Value = self.read_and_parse_yaml(messages_path);
-
-        if value.is_sequence() {
-            for response in value.as_sequence().unwrap() {
-                messages.push(response.as_str().unwrap().to_owned());
+        if val.is_sequence() {
+            for message in val.as_sequence().unwrap() {
+                messages.push(message.as_str().unwrap().to_owned());
             }
         }
 
-        return messages;
+        if messages.len() == 0 {
+            return Err(format!("No messages for matcher {}", name));
+        }
+
+        return Ok(messages);
     }
 
     fn get_patterns(&self, value: &Value) -> Vec<String> {
@@ -113,6 +125,9 @@ impl Parser {
             for val in value.as_sequence().unwrap() {
                 patterns.push(val.as_str().unwrap().to_owned());
             }
+        }
+        else if value.is_string(){
+            patterns.push(value.as_str().unwrap().to_owned());
         }
         else if value.is_f64(){
             patterns.push(value.as_f64().unwrap().to_string());
